@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometry &amp; Wellness Calculator</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --ink: #263445;
+            --muted: #6b7787;
+            --surface: #ffffff;
+            --canvas: #f5f7f8;
+            --accent: #39777a;
+            --accent-dark: #2b6164;
+            --navy: #27394b;
+            --line: #e2e7eb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: 46px 24px 72px;
+            background:
+                radial-gradient(ellipse at 10% 0%, rgb(190 215 214 / 28%), transparent 34rem),
+                var(--canvas);
+            color: var(--ink);
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .page {
+            width: min(100%, 1080px);
+            margin: 0 auto;
+        }
+
+        .page-header {
+            position: relative;
+            max-width: 760px;
+            margin: 0 auto 32px;
+            padding: 42px 32px;
+            overflow: hidden;
+            border-radius: 20px;
+            background: linear-gradient(125deg, #24364b, #304b5e 68%, #365c65);
+            box-shadow: 0 14px 30px rgb(35 54 75 / 14%);
+            text-align: center;
+        }
+
+        .eyebrow {
+            margin: 0 0 12px;
+            color: #b7d9d3;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .page-header h1 {
+            position: relative;
+            z-index: 1;
+            margin: 0;
+            color: #ffffff;
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 650;
+            letter-spacing: -0.045em;
+        }
+
+        .page-header p:last-child {
+            position: relative;
+            z-index: 1;
+            margin: 14px 0 0;
+            color: #e2e9ec;
+            font-size: 1rem;
+            line-height: 1.65;
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            counter-reset: calculator;
+        }
+
+        .calculator-card {
+            display: flex;
+            position: relative;
+            min-height: 258px;
+            flex-direction: column;
+            padding: 23px;
+            border: 1px solid var(--line);
+            border-top: 3px solid var(--accent);
+            border-radius: 13px;
+            background: var(--surface);
+            box-shadow: 0 5px 18px rgb(35 54 75 / 5%);
+            counter-increment: calculator;
+            transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+        }
+
+        .calculator-card::before {
+            display: grid;
+            width: 34px;
+            height: 34px;
+            margin-bottom: 16px;
+            place-items: center;
+            border: 1px solid #d6e7e5;
+            border-radius: 9px;
+            background: #f0f6f5;
+            color: var(--accent-dark);
+            content: counter(calculator, decimal-leading-zero);
+            font-size: 0.75rem;
+            font-weight: 750;
+            letter-spacing: 0.04em;
+        }
+
+        .calculator-card:hover {
+            transform: translateY(-2px);
+            border-color: #c5d8d8;
+            border-top-color: var(--accent-dark);
+            box-shadow: 0 10px 24px rgb(35 54 75 / 9%);
+        }
+
+        .calculator-card:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgb(57 119 122 / 12%), 0 8px 20px rgb(35 54 75 / 7%);
+        }
+
+        .card-heading {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .shape-icon {
+            display: grid;
+            width: 44px;
+            height: 44px;
+            flex: 0 0 44px;
+            place-items: center;
+            border: 1px solid #d6e7e5;
+            border-radius: 10px;
+            background: #f0f6f5;
+            color: var(--accent-dark);
+        }
+
+        .shape-icon svg {
+            width: 28px;
+            height: 28px;
+            fill: none;
+            stroke: currentColor;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-width: 2;
+        }
+
+        .shape-icon .shape-fill {
+            fill: rgb(57 119 122 / 12%);
+        }
+
+        .calculator-card h2 {
+            margin: 0;
+            color: var(--navy);
+            font-size: 1.1rem;
+            font-weight: 650;
+            letter-spacing: -0.02em;
+            line-height: 1.35;
+        }
+
+        .card-description {
+            margin: 0 0 18px;
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .inputs {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .inputs.single-input {
+            grid-template-columns: 1fr;
+        }
+
+        input {
+            width: 100%;
+            min-width: 0;
+            height: 46px;
+            padding: 0 12px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            outline: none;
+            background: #f8fafb;
+            color: var(--ink);
+            font: inherit;
+            font-size: 0.9rem;
+            transition: border-color 150ms ease, box-shadow 150ms ease;
+        }
+
+        input::placeholder {
+            color: #788593;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgb(57 119 122 / 14%);
+        }
+
+        .result {
+            min-height: 22px;
+            margin-top: 12px;
+            color: var(--navy);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .result p {
+            margin: 0;
+        }
+
+        button {
+            width: 100%;
+            min-height: 46px;
+            margin-top: auto;
+            border: 0;
+            border-radius: 8px;
+            background: var(--accent);
+            color: #ffffff;
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgb(43 97 100 / 16%);
+            transition: background-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+        }
+
+        button:hover {
+            background: var(--accent-dark);
+            box-shadow: 0 6px 14px rgb(43 97 100 / 22%);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        button:focus-visible {
+            outline: 3px solid rgb(57 119 122 / 32%);
+            outline-offset: 3px;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 42px 16px 56px;
+            }
+
+            .page-header {
+                margin-bottom: 30px;
+                padding: 34px 22px;
+                border-radius: 16px;
+            }
+
+            .calculator-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 14px;
+            }
+
+            .calculator-card {
+                min-height: 230px;
+                padding: 22px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .calculator-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <header class="page-header">
+            <p class="eyebrow">Everyday tools</p>
+            <h1>Geometry &amp; Wellness</h1>
+            <p>Quick, clear calculations for common shapes and body mass index.</p>
+        </header>
+
+        <section class="calculator-grid" aria-label="Calculators">
+            <article class="calculator-card">
+                <div class="card-heading">
+                    <span class="shape-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path class="shape-fill" d="M7 39 23 9l18 30Z"></path><path d="M7 39 23 9l18 30Z"></path><path d="M23 9v30"></path></svg></span>
+                    <h2>Area of a Triangle</h2>
+                </div>
+                <p class="card-description">Enter the base and height.</p>
+                <div class="inputs">
+                    <input type="text" placeholder="Enter the height" id="height" aria-label="Triangle height">
+                    <input type="text" placeholder="Enter the base" id="base" aria-label="Triangle base">
+                </div>
+                <div class="result" id="display" aria-live="polite"></div>
+                <button type="button" onclick="solve()">Calculate area</button>
+            </article>
+
+            <article class="calculator-card">
+                <div class="card-heading">
+                    <span class="shape-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><rect class="shape-fill" x="9" y="9" width="30" height="30" rx="1"></rect><rect x="9" y="9" width="30" height="30" rx="1"></rect></svg></span>
+                    <h2>Area of a Square</h2>
+                </div>
+                <p class="card-description">Enter the length of one side.</p>
+                <div class="inputs single-input">
+                    <input type="text" placeholder="Enter the length" id="length" aria-label="Square side length">
+                </div>
+                <div class="result" id="display-square" aria-live="polite"></div>
+                <button type="button" onclick="solve()">Calculate area</button>
+            </article>
+
+            <article class="calculator-card">
+                <div class="card-heading">
+                    <span class="shape-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><circle class="shape-fill" cx="24" cy="24" r="15"></circle><circle cx="24" cy="24" r="15"></circle><path d="M24 24 35 17"></path><circle cx="24" cy="24" r="1"></circle></svg></span>
+                    <h2>Area of a Circle</h2>
+                </div>
+                <p class="card-description">Enter the circle's radius.</p>
+                <div class="inputs single-input">
+                    <input type="text" placeholder="Enter the radius" id="radius" aria-label="Circle radius">
+                </div>
+                <div class="result" id="display-circle" aria-live="polite"></div>
+                <button type="button" onclick="solve()">Calculate area</button>
+            </article>
+
+            <article class="calculator-card">
+                <div class="card-heading">
+                    <span class="shape-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path class="shape-fill" d="m9 13 25-4 6 25-24 7Z"></path><path d="m9 13 25-4 6 25-24 7Z"></path><path d="m9 13 31 21"></path></svg></span>
+                    <h2>Area of a Quadrilateral</h2>
+                </div>
+                <p class="card-description">Enter the diagonal and both heights.</p>
+                <div class="inputs">
+                    <input type="text" placeholder="Enter the distance" id="d" aria-label="Quadrilateral diagonal">
+                    <input type="text" placeholder="Enter h1" id="h1" aria-label="Quadrilateral first height">
+                    <input type="text" placeholder="Enter h2" id="h2" aria-label="Quadrilateral second height">
+                </div>
+                <div class="result" id="displayQuadrilateral" aria-live="polite"></div>
+                <button type="button" onclick="solve()">Calculate area</button>
+            </article>
+
+            <article class="calculator-card">
+                <div class="card-heading">
+                    <span class="shape-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path class="shape-fill" d="M24 6 41 24 24 42 7 24Z"></path><path d="M24 6 41 24 24 42 7 24Z"></path><path d="M7 24h34M24 6v36"></path></svg></span>
+                    <h2>Area of a Rhombus</h2>
+                </div>
+                <p class="card-description">Enter the lengths of both diagonals.</p>
+                <div class="inputs">
+                    <input type="text" placeholder="Enter d1" id="d1" aria-label="First rhombus diagonal">
+                    <input type="text" placeholder="Enter d2" id="d2" aria-label="Second rhombus diagonal">
+                </div>
+                <div class="result" id="displayRhombus" aria-live="polite"></div>
+                <button type="button" onclick="solve()">Calculate area</button>
+            </article>
+
+            <article class="calculator-card">
+                <div class="card-heading">
+                    <span class="shape-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path class="shape-fill" d="m14 10 20 0 9 28H5Z"></path><path d="m14 10 20 0 9 28H5Z"></path><path d="M24 10v28"></path></svg></span>
+                    <h2>Area of a Trapezium</h2>
+                </div>
+                <p class="card-description">Enter both parallel sides and the height.</p>
+                <div class="inputs">
+                    <input type="text" placeholder="Enter side a" id="a" aria-label="Trapezium first parallel side">
+                    <input type="text" placeholder="Enter side b" id="b" aria-label="Trapezium second parallel side">
+                    <input type="text" placeholder="Enter the height" id="h" aria-label="Trapezium height">
+                </div>
+                <div class="result" id="displayTrapezium" aria-live="polite"></div>
+                <button type="button" onclick="solve()">Calculate area</button>
+            </article>
+
+            <article class="calculator-card">
+                <div class="card-heading">
+                    <span class="shape-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path class="shape-fill" d="m16 10 28 0-12 28H4Z"></path><path d="m16 10 28 0-12 28H4Z"></path><path d="M16 10v28"></path></svg></span>
+                    <h2>Area of a Parallelogram</h2>
+                </div>
+                <p class="card-description">Enter the base and perpendicular height.</p>
+                <div class="inputs">
+                    <input type="text" placeholder="Enter the base" id="paraB" aria-label="Parallelogram base">
+                    <input type="text" placeholder="Enter the height" id="paraH" aria-label="Parallelogram height">
+                </div>
+                <div class="result" id="displayParallelogram" aria-live="polite"></div>
+                <button type="button" onclick="solve()">Calculate area</button>
+            </article>
+
+            <article class="calculator-card">
+                <div class="card-heading">
+                    <span class="shape-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><rect x="7" y="9" width="34" height="30" rx="4"></rect><circle cx="24" cy="22" r="7"></circle><path d="m24 22 4-4M15 33h18"></path></svg></span>
+                    <h2>Body Mass Index (BMI)</h2>
+                </div>
+                <p class="card-description">Enter your weight and height.</p>
+                <div class="inputs">
+                    <input type="text" placeholder="Enter the weight" id="weight" aria-label="Weight">
+                    <input type="text" placeholder="Enter the height" id="bodyH" aria-label="Height">
+                </div>
+                <div class="result" id="displayBmi" aria-live="polite"></div>
+                <button type="button" onclick="solve()">Calculate BMI</button>
+            </article>
+        </section>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>
